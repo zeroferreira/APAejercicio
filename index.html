@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detecta el error en la cita o referencia APA 7</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        /* Estilos responsive para celulares */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+            }
+            
+            h1 {
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+            
+            .btn {
+                padding: 12px 30px;
+                font-size: 14px;
+            }
+            
+            .question-card {
+                padding: 15px;
+            }
+            
+            .reference-text {
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            
+            .clickable {
+                padding: 2px 3px;
+                margin: 1px;
+                display: inline-block;
+            }
+            
+            .navigation-buttons {
+                margin-top: 15px;
+            }
+            
+            .nav-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+            
+            .score {
+                font-size: 36px;
+                margin: 20px 0;
+            }
+            
+            .score-message {
+                font-size: 16px;
+            }
+            
+            .results-table th, .results-table td {
+                padding: 8px;
+                font-size: 12px;
+            }
+            
+            .feedback-title {
+                font-size: 18px;
+            }
+            
+            .all-feedback {
+                padding: 15px;
+                font-size: 14px;
+            }
+            
+            .correct-answer {
+                padding: 8px;
+                font-size: 13px;
+            }
+        }
+        
+        /* Estilos para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .navigation-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-btn {
+                width: 100%;
+            }
+            
+            .results-table {
+                font-size: 11px;
+            }
+            
+            .results-table th, .results-table td {
+                padding: 6px 4px;
+            }
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .welcome-screen {
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .quiz-screen {
+            display: none;
+        }
+        
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            display: none;
+        }
+        
+        .question-card.active {
+            display: block;
+        }
+        
+        .question-card.answered {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .question-number {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .reference-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+            font-family: 'Georgia', serif;
+        }
+        
+        .parts-container {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+            font-family: 'Georgia', serif;
+        }
+        
+        .clickable {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .clickable:hover {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .mobile-hint {
+            display: none;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
+            border-left: 4px solid #2196f3;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-hint {
+                display: block;
+            }
+        }
+        
+        .clickable.selected {
+            background-color: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .clickable.correct {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+            text-decoration: underline;
+            text-decoration-color: #ffffff;
+            text-decoration-thickness: 2px;
+        }
+        
+        .clickable.incorrect {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+            text-decoration: underline;
+            text-decoration-color: #ffffff;
+            text-decoration-thickness: 2px;
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .feedback.show {
+            display: block;
+        }
+        
+        .feedback.correct {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .feedback strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .correct-answer {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            font-family: 'Georgia', serif;
+        }
+        
+        .results-screen {
+            display: none;
+            text-align: center;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .results-table th {
+            background-color: #f0f4ff;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .results-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .results-table tr:hover {
+            background-color: #f0f4ff;
+        }
+        
+        .winner {
+            background-color: #d4edda !important;
+            color: #155724;
+            font-weight: 600;
+        }
+        
+        .all-feedback {
+            text-align: left;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .feedback-title {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .score {
+            font-size: 48px;
+            color: #667eea;
+            font-weight: 700;
+            margin: 30px 0;
+        }
+        
+        .score-message {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .student-name {
+            color: #764ba2;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .italic {
+            font-style: italic;
+        }
+        
+        .instruction {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            color: #0c5460;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Detecta el error en la cita o referencia APA 7</h1>
+        
+        <div id="welcomeScreen" class="welcome-screen">
+            <p style="margin-bottom: 20px; color: #666; font-size: 18px;">
+                Bienvenido(a) a esta actividad interactiva. Identificarás errores comunes en referencias APA 7.
+            </p>
+            <div class="form-group">
+                <label for="nombre">Nombre(s):</label>
+                <input type="text" id="nombre" placeholder="Escribe tu nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="apellido">Apellido(s):</label>
+                <input type="text" id="apellido" placeholder="Escribe tu apellido" required>
+            </div>
+            <button class="btn" onclick="startQuiz()">Comenzar Quiz</button>
+            <!-- Botones nuevos para ver/borrar resultados guardados -->
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="viewSavedResults()">Ver resultados guardados</button>
+                <button class="btn" onclick="clearSavedResults()">Borrar resultados guardados</button>
+            </div>
+        </div>
+        
+        <div id="quizScreen" class="quiz-screen">
+            <div class="instruction">
+                👆 <strong>Instrucciones:</strong> Da clic en la parte incorrecta de cada referencia
+            </div>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div id="questionsContainer"></div>
+            <div class="navigation-buttons">
+                <button class="nav-btn" id="prevBtn" onclick="navigateQuestion(-1)" disabled>Anterior</button>
+                <button class="nav-btn" id="nextBtn" onclick="navigateQuestion(1)" disabled>Siguiente</button>
+            </div>
+            <button class="btn" onclick="submitQuiz()" id="submitBtn" disabled>Ver Resultados</button>
+        </div>
+        
+        <div id="resultsScreen" class="results-screen">
+            <h2>🎉 ¡Quiz Completado!</h2>
+            <p class="score-message">Estudiante: <span class="student-name" id="studentName"></span></p>
+            <div class="score" id="finalScore"></div>
+            
+            <h3 class="feedback-title">Tabla de Resultados</h3>
+            <table class="results-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Respuestas Correctas</th>
+                        <th>Tiempo (segundos)</th>
+                        <th>Puntuación</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                    <!-- Los resultados se agregarán aquí dinámicamente -->
+                </tbody>
+            </table>
+            
+            <div class="all-feedback" id="allFeedback">
+                <h3 class="feedback-title">Retroalimentación</h3>
+                <!-- La retroalimentación se agregará aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                type: "Libro",
+                parts: [
+                    { text: "García", clickable: true, error: false, explanation: "Correcto. El apellido del autor está bien escrito." },
+                    { text: " M.", clickable: true, error: true, explanation: "Error: Falta la coma después del apellido. Debe ser: García, M." },
+                    { text: " (2023). ", clickable: false },
+                    { text: "Psicología cognitiva moderna", clickable: true, error: false, italic: true, explanation: "Incorrecto: El título del libro está correctamente en cursiva y no es un error." },
+                    { text: ". Editorial Universitaria.", clickable: false }
+                ],
+                correctAnswer: "García, M. (2023). <em>Psicología cognitiva moderna</em>. Editorial Universitaria.",
+                errors: ["Falta la coma después del apellido"]
+            },
+            {
+                id: 2,
+                type: "Libro",
+                parts: [
+                    { text: "López, A.", clickable: true, error: false, explanation: "Correcto. El nombre del autor está bien formateado." },
+                    { text: " (2022). ", clickable: false },
+                    { text: "Neurociencia y aprendizaje", clickable: true, error: false, explanation: "Correcto. El título del libro está correctamente en cursiva." },
+                    { text: ". ", clickable: false },
+                    { text: "https://www.editorialacademica.com/libro", clickable: true, error: true, explanation: "Error: Falta la editorial antes del URL en libros electrónicos." }
+                ],
+                correctAnswer: "López, A. (2022). <em>Neurociencia y aprendizaje</em>. Editorial Académica. https://www.editorialacademica.com/libro",
+                errors: ["Falta la editorial antes del URL"]
+            },
+            {
+                id: 3,
+                type: "Artículo de revista",
+                parts: [
+                    { text: "Martínez, L.", clickable: true, error: false, explanation: "Correcto. El nombre del autor está bien escrito." },
+                    { text: " (2024). Estrategias de enseñanza efectivas. ", clickable: false },
+                    { text: "Revista de Educación", clickable: true, error: true, explanation: "Error: El nombre de la revista debe estar en cursiva." },
+                    { text: ". ", clickable: false },
+                    { text: "https://www.revistaeducacion.org/articulo", clickable: true, error: false, explanation: "Correcto. El formato del URL es adecuado." }
+                ],
+                correctAnswer: "Martínez, L. (2024). Estrategias de enseñanza efectivas. <em>Revista de Educación</em>. https://www.revistaeducacion.org/articulo",
+                errors: ["El nombre de la revista debe estar en cursiva"]
+            },
+            {
+                id: 4,
+                type: "Sitio web (PDF)",
+                parts: [
+                    { text: "López", clickable: true, error: false, explanation: "Correcto: El apellido del autor está bien." },
+                    { text: ", J.", clickable: false },
+                    { text: " (2021). ", clickable: false },
+                    { text: "Guía de métodos de investigación educativa", clickable: true, error: false, italic: true, explanation: "Incorrecto: El título del documento está correctamente en cursiva y no es un error." },
+                    { text: ". Universidad Nacional. ", clickable: false },
+                    { text: "Recuperado de ", clickable: true, error: true, explanation: "Error APA 7: No se usa 'Recuperado de' para contenidos web estables; incluye solo el URL." },
+                    { text: "https://www.un.edu/docs/metodos.pdf", clickable: false }
+                ],
+                correctAnswer: "López, J. (2021). <em>Guía de métodos de investigación educativa</em>. Universidad Nacional. https://www.un.edu/docs/metodos.pdf",
+                errors: ["Uso de 'Recuperado de' en un recurso web estable"]
+            },
+            {
+                id: 5,
+                type: "Sitio web",
+                parts: [
+                    { text: "Martínez", clickable: true, error: false, explanation: "Correcto: El apellido del autor está bien escrito." },
+                    { text: ", A.", clickable: false },
+                    { text: " (2022, Agosto 15). ", clickable: true, error: true, explanation: "Error APA 7: El mes debe ir en minúscula en español y el formato correcto es 'año, mes día': (2022, agosto 15)." },
+                    { text: "Estrategias de estudio para universitarios", clickable: true, error: false, italic: true, explanation: "Incorrecto: El título está correctamente en cursiva y no es un error." },
+                    { text: ". Universidad Abierta. ", clickable: false },
+                    { text: "https://www.ua.edu/recursos/estrategias-estudio", clickable: false }
+                ],
+                correctAnswer: "Martínez, A. (2022, agosto 15). <em>Estrategias de estudio para universitarios</em>. Universidad Abierta. https://www.ua.edu/recursos/estrategias-estudio",
+                errors: ["Mes en mayúscula en la fecha; debe ir en minúscula (agosto)"]
+            },
+            {
+                id: 6,
+                type: "Sitio web",
+                parts: [
+                    { text: "Organización Mundial de la Salud", clickable: true, error: false, explanation: "Correcto. El nombre de la organización como autor está bien." },
+                    { text: ". (2024). ", clickable: false },
+                    { text: "Salud mental global: Informe 2024", clickable: true, error: false, explanation: "Correcto. El título del informe está correctamente en cursiva." },
+                    { text: ". ", clickable: false },
+                    { text: "Recuperado el 15 de marzo de 2024, de ", clickable: true, error: true, explanation: "Error: En APA 7 no se incluye fecha de recuperación ni 'Recuperado de' para fuentes estables." },
+                    { text: "https://www.who.int/mental-health-report", clickable: true, error: false, explanation: "Correcto. El URL está bien formateado." }
+                ],
+                correctAnswer: "Organización Mundial de la Salud. (2024). <em>Salud mental global: Informe 2024</em>. https://www.who.int/mental-health-report",
+                errors: ["No se incluye fecha de recuperación en APA 7 para fuentes estables"]
+            },
+            {
+                id: 7,
+                type: "Sitio web (Blog)",
+                parts: [
+                    { text: "Pérez, C.", clickable: true, error: false, explanation: "Correcto: Autor con apellido e inicial." },
+                    { text: " (2023, mayo 10). ", clickable: false },
+                    { text: "Aprender programación desde cero", clickable: true, error: false, italic: true, explanation: "Incorrecto: El título ya está en cursiva y no es el error." },
+                    { text: ". Blog de Tecnología. ", clickable: false },
+                    { text: "https://blogtecnologia.com/aprender-programacion", clickable: false },
+                    { text: ".", clickable: true, error: true, explanation: "Error APA 7: No se coloca punto al final del URL." }
+                ],
+                correctAnswer: "Pérez, C. (2023, mayo 10). <em>Aprender programación desde cero</em>. Blog de Tecnología. https://blogtecnologia.com/aprender-programacion",
+                errors: ["No se coloca punto final en el URL"]
+            },
+            {
+                id: 8,
+                type: "Sitio web",
+                parts: [
+                    { text: "Instituto Nacional de Estadística", clickable: true, error: false, explanation: "Correcto: Autor corporativo." },
+                    { text: ". (Sin fecha). ", clickable: true, error: true, explanation: "Error APA 7: Para 'sin fecha' se usa (s. f.)." },
+                    { text: "Indicadores demográficos 2024", clickable: true, error: false, italic: true, explanation: "Incorrecto: El título está en cursiva correctamente." },
+                    { text: ". INE. ", clickable: false },
+                    { text: "https://www.ine.es/indicadores", clickable: false }
+                ],
+                correctAnswer: "Instituto Nacional de Estadística. (s. f.). <em>Indicadores demográficos 2024</em>. INE. https://www.ine.es/indicadores",
+                errors: ["Formato correcto para 'sin fecha' es (s. f.)"]
+            },
+            {
+                id: 9,
+                type: "Sitio web (Informe)",
+                parts: [
+                    { text: "Ministerio de Educación", clickable: true, error: false, explanation: "Correcto: Autor corporativo." },
+                    { text: ". (2024, febrero). ", clickable: false },
+                    { text: "Informe anual sobre educación superior", clickable: true, error: false, italic: true, explanation: "Incorrecto: El título ya está en cursiva y no es el error." },
+                    { text: ". Ministerio de Educación. ", clickable: false },
+                    { text: "Disponible en: ", clickable: true, error: true, explanation: "Error APA 7: No se usa 'Disponible en'; se coloca solo el URL." },
+                    { text: "https://www.minedu.gob/informe2024", clickable: false }
+                ],
+                correctAnswer: "Ministerio de Educación. (2024, febrero). <em>Informe anual sobre educación superior</em>. Ministerio de Educación. https://www.minedu.gob/informe2024",
+                errors: ["No se usa 'Disponible en' en APA 7; solo el URL"]
+            }
+        ];
+
+        let studentData = {};
+        let answers = {};
+        let answeredCount = 0;
+        let currentQuestion = 1;
+        let startTime;
+        let endTime;
+        let feedbackData = [];
+        
+        // Datos simulados para la tabla de resultados
+        let leaderboard = [
+            
+        ];
+
+        function startQuiz() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellido = document.getElementById('apellido').value.trim();
+            
+            if (!nombre || !apellido) {
+                alert('Por favor, ingresa tu nombre y apellido completos.');
+                return;
+            }
+            
+            studentData = { 
+                nombre: nombre, 
+                apellido: apellido,
+                nombreCompleto: `${nombre} ${apellido}`
+            };
+            
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'block';
+            
+            startTime = new Date();
+            renderQuestions();
+            showQuestion(currentQuestion);
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            questions.forEach(q => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `question-${q.id}`;
+                
+                const questionNum = document.createElement('div');
+                questionNum.className = 'question-number';
+                questionNum.textContent = `Pregunta ${q.id}${q.type ? ' — ' + q.type : ''}`;
+                card.appendChild(questionNum);
+                
+                // Pista para usuarios móviles (se muestra solo por CSS en pantallas pequeñas)
+                const mobileHint = document.createElement('div');
+                mobileHint.className = 'mobile-hint';
+                mobileHint.textContent = 'Toca los segmentos resaltados o subrayados para seleccionar el error.';
+                card.appendChild(mobileHint);
+                
+                const partsContainer = document.createElement('div');
+                partsContainer.className = 'parts-container';
+                
+                q.parts.forEach((part, idx) => {
+                    const span = document.createElement('span');
+                    
+                    if (part.clickable) {
+                        span.classList.add('clickable');
+                        span.dataset.index = idx.toString();
+                        span.dataset.questionId = q.id.toString();
+                    }
+                    
+                    // Mostrar en cursiva si la parte tiene la bandera italic: true
+                    if (part.italic) {
+                        span.innerHTML = `<em>${part.text}</em>`;
+                    } else {
+                        span.textContent = part.text;
+                    }
+                    
+                    // Preservar la información de error para el manejador de selección
+                    if (typeof part.error === 'boolean') {
+                        span.dataset.error = part.error ? 'true' : 'false';
+                    }
+                    
+                    // Adjuntar eventos si es clickeable
+                    if (part.clickable) {
+                        span.addEventListener('click', () => selectAnswer(q.id, idx));
+                    }
+                    
+                    partsContainer.appendChild(span);
+                });
+                
+                card.appendChild(partsContainer);
+                
+                const feedback = document.createElement('div');
+                feedback.className = 'feedback';
+                feedback.id = `feedback-${q.id}`;
+                card.appendChild(feedback);
+                
+                container.appendChild(card);
+            });
+            
+            console.log('Elementos clickables creados:', document.querySelectorAll('.clickable').length);
+        }
+
+        function selectAnswer(questionId, partIndex) {
+            const card = document.getElementById(`question-${questionId}`);
+            if (!card) return;
+
+            // Bloquear si ya se seleccionó una respuesta en esta pregunta
+            if (card.dataset.locked === 'true') {
+                return;
+            }
+
+            const question = questions.find(q => q.id === questionId);
+            const part = question.parts[partIndex];
+            const isError = part.error;
+            const explanation = part.explanation;
+            
+            console.log(`Click detectado: Pregunta ${questionId}, Parte ${partIndex}, Error: ${isError}, Texto: ${part.text}`);
+            
+            const clickables = card.querySelectorAll('.clickable');
+            
+            // Limpiar todas las clases previas de todos los elementos clickables de esta pregunta
+            clickables.forEach(clickable => {
+                clickable.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // Encontrar el elemento clickeado y agregar la clase apropiada
+            const clickedElement = card.querySelector(`[data-index="${partIndex}"]`);
+            if (clickedElement) {
+                if (isError) {
+                    clickedElement.classList.add('correct');
+                    console.log('Marcado como correcto');
+                } else {
+                    clickedElement.classList.add('incorrect');
+                    console.log('Marcado como incorrecto');
+                }
+            }
+            
+            // Actualizar la respuesta para esta pregunta
+            answers[questionId] = {
+                correct: isError,
+                partIndex: partIndex,
+                explanation: explanation,
+                question: question
+            };
+            
+            // Bloquear definitivamente la pregunta después de la primera selección
+            card.dataset.locked = 'true';
+            clickables.forEach(c => {
+                c.style.pointerEvents = 'none';
+            });
+            
+            // Marcar como respondida solo si encontró un error (respuesta correcta)
+            if (isError && !card.classList.contains('answered')) {
+                answeredCount++;
+                updateProgress();
+                card.classList.add('answered');
+            }
+            
+            // Mostrar feedback inmediato
+            const feedback = document.getElementById(`feedback-${questionId}`);
+            if (feedback) {
+                const hint = !isError
+                    ? `<div class="correct-answer"><strong>Pista:</strong> En esta pregunta, revisa: <ul style="margin: 8px 0; padding-left: 18px;">${question.errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`
+                    : '';
+
+                feedback.innerHTML = `
+                    <strong>${isError ? '✅ ¡Correcto!' : '❌ Incorrecto'}</strong><br>
+                    ${explanation}
+                    ${hint}
+                `;
+                feedback.className = `feedback show ${isError ? 'correct' : 'incorrect'}`;
+                feedback.style.display = 'block';
+            }
+            
+            // Actualizar feedbackData solo con respuestas correctas
+            if (isError) {
+                const existingFeedbackIndex = feedbackData.findIndex(f => f.questionId === questionId);
+                const newFeedback = {
+                    questionId: questionId,
+                    isCorrect: isError,
+                    explanation: explanation,
+                    question: question
+                };
+                
+                if (existingFeedbackIndex === -1) {
+                    feedbackData.push(newFeedback);
+                } else {
+                    feedbackData[existingFeedbackIndex] = newFeedback;
+                }
+            }
+            
+            // Habilitar botones
+            if (questionId < questions.length) {
+                const nextBtn = document.getElementById('nextBtn');
+                if (nextBtn) nextBtn.disabled = false;
+            }
+            
+            // Habilitar "Ver Resultados" cuando todas las preguntas tengan una selección registrada
+            if (Object.keys(answers).length === questions.length) {
+                const submitBtn = document.getElementById('submitBtn');
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
+        function showQuestion(questionId) {
+            // Ocultar todas las preguntas
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Mostrar la pregunta actual con verificación para evitar errores y pantallas en blanco
+            const currentCard = document.getElementById(`question-${questionId}`);
+            if (currentCard) {
+                currentCard.classList.add('active');
+            } else {
+                console.warn(`No se encontró el elemento de la pregunta: question-${questionId}. Verifica renderQuestions.`);
+            }
+            
+            // Actualizar botones de navegación
+            document.getElementById('prevBtn').disabled = questionId === 1;
+            document.getElementById('nextBtn').disabled = questionId === questions.length;
+            
+            currentQuestion = questionId;
+        }
+
+        function navigateQuestion(direction) {
+            const newQuestionId = currentQuestion + direction;
+            if (newQuestionId >= 1 && newQuestionId <= questions.length) {
+                showQuestion(newQuestionId);
+            }
+        }
+        
+        function generateResultsTable() {
+            const tableBody = document.getElementById('resultsTableBody');
+            tableBody.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" style="text-align:center; color:#666;">No hay resultados guardados en este dispositivo.</td>
+                `;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            leaderboard.forEach((student, index) => {
+                const row = document.createElement('tr');
+                
+                // Marcar al ganador (primer lugar)
+                if (index === 0) {
+                    row.classList.add('winner');
+                }
+                
+                row.innerHTML = `
+                    <td>${student.nombre}</td>
+                    <td>${student.correctas}/${questions.length}</td>
+                    <td>${student.tiempo}</td>
+                    <td>${student.puntuacion}%</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function showAllFeedback() {
+            const feedbackContainer = document.getElementById('allFeedback');
+            feedbackContainer.innerHTML = '<h3 class="feedback-title">Retroalimentación</h3>';
+            
+            feedbackData.forEach(data => {
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.className = `feedback show ${data.isCorrect ? 'correct' : 'incorrect'}`;
+                feedbackDiv.style.marginBottom = '20px';
+                
+                const questionTitle = document.createElement('h4');
+                questionTitle.textContent = `Pregunta ${data.questionId}`;
+                questionTitle.style.marginBottom = '10px';
+                feedbackDiv.appendChild(questionTitle);
+                
+                if (data.isCorrect) {
+                    feedbackDiv.innerHTML += `
+                        <strong>✅ ¡Correcto!</strong>
+                        <p>${data.explanation}</p>
+                        <div class="correct-answer">
+                            <strong>Forma correcta:</strong><br>
+                            ${data.question.correctAnswer}
+                        </div>
+                    `;
+                } else {
+                    feedbackDiv.innerHTML += `
+                        <strong>❌ Incorrecto</strong>
+                        <p>Esa parte no contiene el error principal. Los errores en esta referencia son:</p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            ${data.question.errors.map(e => `<li>${e}</li>`).join('')}
+                        </ul>
+                        <div class="correct-answer">
+                            <strong>Forma correcta:</strong><br>
+                            ${data.question.correctAnswer}
+                        </div>
+                    `;
+                }
+                
+                feedbackContainer.appendChild(feedbackDiv);
+            });
+        }
+
+        function updateProgress() {
+            const progress = (answeredCount / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function submitQuiz() {
+            endTime = new Date();
+            const timeSpent = Math.floor((endTime - startTime) / 1000); // Tiempo en segundos
+            
+            const correctAnswers = Object.values(answers).filter(a => a.correct).length;
+            const score = ((correctAnswers / questions.length) * 100).toFixed(0);
+            
+            // Agregar el resultado del estudiante actual a la tabla
+            leaderboard.push({
+                nombre: studentData.nombreCompleto,
+                correctas: correctAnswers,
+                tiempo: timeSpent,
+                puntuacion: parseInt(score)
+            });
+            
+            // Ordenar la tabla por puntuación (mayor a menor) y tiempo (menor a mayor)
+            leaderboard.sort((a, b) => {
+                if (b.correctas !== a.correctas) {
+                    return b.correctas - a.correctas; // Primero por respuestas correctas
+                }
+                return a.tiempo - b.tiempo; // Luego por tiempo (menor es mejor)
+            });
+            
+            // Mostrar la pantalla de resultados
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'block';
+            document.getElementById('studentName').textContent = studentData.nombreCompleto;
+            document.getElementById('finalScore').textContent = `${correctAnswers}/${questions.length} (${score}%)`;
+            
+            // Generar la tabla de resultados
+            generateResultsTable();
+            
+            // Mostrar toda la retroalimentación
+            showAllFeedback();
+            
+            // Guardar resultados en localStorage para que estén disponibles en línea
+            saveResultsToLocalStorage();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        // Función para guardar resultados en localStorage
+        function saveResultsToLocalStorage() {
+            // Obtener resultados existentes o crear un array vacío
+            let savedResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+            
+            // Añadir el resultado actual
+            savedResults.push({
+                nombre: studentData.nombreCompleto,
+                correctas: Object.values(answers).filter(a => a.correct).length,
+                tiempo: Math.floor((endTime - startTime) / 1000),
+                puntuacion: parseInt(((Object.values(answers).filter(a => a.correct).length / questions.length) * 100).toFixed(0)),
+                fecha: new Date().toISOString()
+            });
+            
+            // Guardar en localStorage
+            localStorage.setItem('quizResults', JSON.stringify(savedResults));
+        }
+
+        // Función para mostrar resultados guardados sin iniciar un nuevo quiz
+        function viewSavedResults() {
+            // Cargar resultados guardados
+            let savedResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+
+            // Preparar leaderboard desde resultados guardados
+            leaderboard = [];
+            savedResults.forEach(result => {
+                leaderboard.push({
+                    nombre: result.nombre,
+                    correctas: result.correctas,
+                    tiempo: result.tiempo,
+                    puntuacion: result.puntuacion
+                });
+            });
+
+            // Mostrar pantalla de resultados
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'block';
+
+            // Encabezado informativo
+            document.getElementById('studentName').textContent = 'Resultados guardados';
+            document.getElementById('finalScore').textContent = savedResults.length > 0 
+                ? `Se encontraron ${savedResults.length} registros en este dispositivo.`
+                : 'No hay resultados guardados.';
+
+            // Generar la tabla
+            generateResultsTable();
+
+            // Limpiar la retroalimentación detallada (no disponible para historial)
+            const feedbackContainer = document.getElementById('allFeedback');
+            if (feedbackContainer) {
+                feedbackContainer.innerHTML = `
+                    <h3 class="feedback-title">Retroalimentación</h3>
+                    <p style="color:#555;">La retroalimentación detallada se muestra al finalizar un quiz. Aquí solo se muestra el historial de puntuaciones guardado en este navegador.</p>
+                `;
+            }
+        }
+        
+        // Función para borrar resultados guardados del dispositivo
+        function clearSavedResults() {
+            if (confirm('¿Estás seguro de que quieres borrar todos los resultados guardados? Esta acción no se puede deshacer.')) {
+                localStorage.removeItem('quizResults');
+                leaderboard = [];
+                // Si estás en resultados, refresca la vista
+                if (document.getElementById('resultsScreen').style.display === 'block') {
+                    generateResultsTable();
+                    document.getElementById('finalScore').textContent = 'No hay resultados guardados.';
+                }
+                alert('Resultados guardados borrados de este dispositivo.');
+            }
+        }
+
+        // Cargar resultados guardados al iniciar
+        window.onload = function() {
+            // Cargar resultados guardados si existen
+            let savedResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+            if (savedResults.length > 0) {
+                // Añadir a la tabla de líderes
+                savedResults.forEach(result => {
+                    leaderboard.push({
+                        nombre: result.nombre,
+                        correctas: result.correctas,
+                        tiempo: result.tiempo,
+                        puntuacion: result.puntuacion
+                    });
+                });
+            }
+        };
+    </script>
+</body>
+</html>
