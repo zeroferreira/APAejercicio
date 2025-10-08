@@ -596,12 +596,13 @@
                 parts: [
                     { text: "López, A.", clickable: true, error: false, explanation: "Correcto. El nombre del autor está bien formateado." },
                     { text: " (2022). ", clickable: false },
-                    { text: "Neurociencia y aprendizaje", clickable: true, error: false, explanation: "Correcto. El título del libro está correctamente en cursiva." },
+                    { text: "Neurociencia y aprendizaje", clickable: true, error: true, explanation: "Correcto: En APA 7 el título de un libro debe estar en cursiva; aquí falta la cursiva." },
                     { text: ". ", clickable: false },
-                    { text: "https://www.editorialacademica.com/libro", clickable: true, error: true, explanation: "Error: Falta la editorial antes del URL en libros electrónicos." }
+                    { text: "Editorial Ficticia. ", clickable: false },
+                    { text: "https://www.editorialacademica.com/libro", clickable: true, error: false, explanation: "Incorrecto: El URL está bien formado y no representa un error." }
                 ],
-                correctAnswer: "López, A. (2022). <em>Neurociencia y aprendizaje</em>. Editorial Académica. https://www.editorialacademica.com/libro",
-                errors: ["Falta la editorial antes del URL"]
+                correctAnswer: "López, A. (2022). <em>Neurociencia y aprendizaje</em>. Editorial Ficticia. https://www.editorialacademica.com/libro",
+                errors: ["El título del libro debe estar en cursiva"]
             },
             {
                 id: 3,
