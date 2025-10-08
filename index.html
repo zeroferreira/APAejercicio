@@ -1204,8 +1204,16 @@
         }
 
         // Función para verificar si el error es por índice en construcción
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function isIndexMissing(err) {
+            return err?.code === 'failed-precondition' && /create index|no matching index|missing index/i.test(err?.message || '');
+        }
+
         function isIndexBuilding(err) {
-            return typeof err?.message === 'string' && /index.*building|currently building/i.test(err.message);
+            return err?.code === 'failed-precondition' && /currently building|index.*building/i.test(err?.message || '');
         }
 
         // Función para cargar y mostrar resultados globales
@@ -1213,28 +1221,43 @@
             try {
                 // Asegurar autenticación antes de consultar
                 await ensureAuth();
-                
+
+                console.log('Consultando índices en proyecto:', firebase.app().options.projectId);
+
                 let snapshot;
-                try {
-                    // Intento con doble orderBy (requiere índice compuesto)
-                    snapshot = await db.collection('results')
-                        .orderBy('puntuacion', 'desc')
-                        .orderBy('tiempo', 'asc')
-                        .limit(100)
-                        .get();
-                } catch (err) {
-                    console.error('Error consultando índices compuestos:', err.code, err.message);
-                    if (err.code === 'failed-precondition') {
-                        if (isIndexBuilding(err)) {
-                            alert('El índice compuesto se está construyendo. Espera 1–2 minutos y vuelve a intentar.');
-                            return; // Evita mostrar fallback mientras se construye
-                        }
-                        alert('Falta crear el índice compuesto en Firestore para ordenar por puntuación y tiempo. Se mostrará un orden aproximado. Abre la consola para ver el detalle y el enlace sugerido.');
+                let attempts = 4; // reintentos si el índice está en construcción
+
+                while (true) {
+                    try {
+                        // Intento con doble orderBy (requiere índice compuesto)
                         snapshot = await db.collection('results')
                             .orderBy('puntuacion', 'desc')
+                            .orderBy('tiempo', 'asc')
                             .limit(100)
                             .get();
-                    } else {
+                        break; // éxito, salimos del bucle
+                    } catch (err) {
+                        console.error('Error consultando índices compuestos:', err.code, err.message);
+
+                        if (isIndexBuilding(err) && attempts > 0) {
+                            // El índice existe pero está en construcción: esperamos y reintentamos
+                            console.warn('El índice compuesto está construyéndose. Reintentando en 3s...');
+                            await sleep(3000);
+                            attempts--;
+                            continue;
+                        }
+
+                        if (isIndexMissing(err)) {
+                            // Falta índice compuesto: usamos fallback y avisamos
+                            alert('Falta crear el índice compuesto en Firestore para ordenar por puntuación y tiempo. Se mostrará un orden aproximado. Abre la consola para ver el detalle y el enlace sugerido.');
+                            snapshot = await db.collection('results')
+                                .orderBy('puntuacion', 'desc')
+                                .limit(100)
+                                .get();
+                            break;
+                        }
+
+                        // Otro error: lo propagamos
                         throw err;
                     }
                 }
@@ -1275,19 +1298,9 @@
                         <p style="color:#555;">La retroalimentación detallada se muestra al finalizar un quiz. Aquí se muestra el ranking global guardado en Firestore.</p>
                     `;
                 }
-            } catch (err) {
-                console.error('Error al consultar resultados globales:', err.code, err.message);
-                if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
-                    alert(`No fue posible cargar los resultados globales.
-Código: ${err.code}
-Detalle: ${err.message}
-Verifica: habilitar autenticación anónima, autorizar tu dominio en Authentication y ajustar reglas de Firestore (allow read/write if request.auth != null).`);
-                } else {
-                    alert(`No fue posible cargar los resultados globales.
-Código: ${err.code || 'desconocido'}
-Detalle: ${err.message || 'Sin mensaje'}
-Revisa la configuración de Firebase y las reglas de Firestore.`);
-                }
+            } catch (error) {
+                console.error('No fue posible cargar los resultados globales:', error);
+                alert('No fue posible cargar los resultados globales. Revisa la configuración de Firebase y las reglas de Firestore.');
             }
         }
 
