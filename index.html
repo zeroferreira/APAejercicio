@@ -1203,6 +1203,11 @@
             });
         }
 
+        // Función para verificar si el error es por índice en construcción
+        function isIndexBuilding(err) {
+            return typeof err?.message === 'string' && /index.*building|currently building/i.test(err.message);
+        }
+
         // Función para cargar y mostrar resultados globales
         async function viewGlobalResults() {
             try {
@@ -1218,9 +1223,12 @@
                         .limit(100)
                         .get();
                 } catch (err) {
+                    console.error('Error consultando índices compuestos:', err.code, err.message);
                     if (err.code === 'failed-precondition') {
-                        // Falta índice compuesto: usamos fallback y avisamos
-                        console.warn('Falta índice compuesto para (puntuacion desc, tiempo asc). Usando fallback.', err.message);
+                        if (isIndexBuilding(err)) {
+                            alert('El índice compuesto se está construyendo. Espera 1–2 minutos y vuelve a intentar.');
+                            return; // Evita mostrar fallback mientras se construye
+                        }
                         alert('Falta crear el índice compuesto en Firestore para ordenar por puntuación y tiempo. Se mostrará un orden aproximado. Abre la consola para ver el detalle y el enlace sugerido.');
                         snapshot = await db.collection('results')
                             .orderBy('puntuacion', 'desc')
