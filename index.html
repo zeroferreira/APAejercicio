@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detecta el error en la cita o referencia APA 7</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -496,6 +499,7 @@
             <div style="margin-top: 15px;">
                 <button class="btn" onclick="viewSavedResults()">Ver resultados guardados</button>
                 <button class="btn" onclick="clearSavedResults()">Borrar resultados guardados</button>
+                <button class="btn" onclick="viewGlobalResults()">Ver resultados globales</button>
             </div>
         </div>
         
@@ -542,6 +546,36 @@
     </div>
 
     <script>
+        // Configuración de Firebase
+        function initFirebase() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyBBo3nKynAseZuBzZgpcuvHiU2LvgvKUTg",
+                authDomain: "apaejercicio.firebaseapp.com",
+                projectId: "apaejercicio",
+                storageBucket: "apaejercicio.firebasestorage.app",
+                messagingSenderId: "658273865093",
+                appId: "1:658273865093:web:1ede7c3687f797cc1c88ec",
+                measurementId: "G-69RWQHHC72"
+            };
+
+            if (!firebase.apps?.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+
+            // Firestore disponible globalmente
+            window.db = firebase.firestore();
+
+            // Autenticación anónima
+            firebase.auth().signInAnonymously().catch((error) => {
+                console.error('Error al iniciar sesión anónima:', error);
+            });
+        }
+
+        // Inicializar Firebase
+        initFirebase();
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
         const questions = [
             {
                 id: 1,
@@ -1015,6 +1049,18 @@
             // Guardar resultados en localStorage para que estén disponibles en línea
             saveResultsToLocalStorage();
             
+            // Guardar también en Firestore
+            saveResultsToFirestore();
+            
+            // Guardar resultados en la nube
+            saveResultsToCloud({
+                nombre: studentData.nombreCompleto,
+                correctas: correctAnswers,
+                tiempo: Math.floor((endTime - startTime) / 1000),
+                puntuacion: parseInt(score),
+                fechaLocal: new Date().toISOString()
+            });
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         // Función para guardar resultados en localStorage
@@ -1086,6 +1132,89 @@
                     document.getElementById('finalScore').textContent = 'No hay resultados guardados.';
                 }
                 alert('Resultados guardados borrados de este dispositivo.');
+            }
+        }
+
+        // Función para guardar resultados en Firestore
+        async function saveResultsToFirestore() {
+            try {
+                const correctAnswers = Object.values(answers).filter(a => a.correct).length;
+                const timeSpent = Math.floor((endTime - startTime) / 1000);
+                const score = parseInt(((correctAnswers / questions.length) * 100).toFixed(0));
+                
+                await db.collection('quizResults').add({
+                    nombre: studentData.nombreCompleto,
+                    correctas: correctAnswers,
+                    tiempo: timeSpent,
+                    puntuacion: score,
+                    fecha: firebase.firestore.FieldValue.serverTimestamp(),
+                    totalPreguntas: questions.length
+                });
+                
+                console.log('Resultados guardados en Firestore');
+            } catch (error) {
+                console.error('Error guardando en Firestore:', error);
+            }
+        }
+
+
+
+        // Función para guardar resultados en la nube
+        async function saveResultsToCloud(result) {
+            try {
+                await db.collection('results').add({
+                    ...result,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log('Resultados guardados en la nube');
+            } catch (err) {
+                console.error('Error al guardar resultados en Firestore:', err);
+                alert('No se pudieron guardar los resultados en la nube. Revisa tu configuración de Firebase.');
+            }
+        }
+
+        // Función para cargar y mostrar resultados globales
+        async function viewGlobalResults() {
+            try {
+                const snapshot = await db.collection('results')
+                    .orderBy('puntuacion', 'desc')
+                    .orderBy('tiempo', 'asc')
+                    .limit(100)
+                    .get();
+
+                leaderboard = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    leaderboard.push({
+                        nombre: data.nombre,
+                        correctas: data.correctas,
+                        tiempo: data.tiempo,
+                        puntuacion: data.puntuacion
+                    });
+                });
+
+                // Mostrar pantalla de resultados
+                document.getElementById('welcomeScreen').style.display = 'none';
+                document.getElementById('quizScreen').style.display = 'none';
+                document.getElementById('resultsScreen').style.display = 'block';
+
+                document.getElementById('studentName').textContent = 'Resultados globales';
+                document.getElementById('finalScore').textContent = leaderboard.length > 0
+                    ? `Se encontraron ${leaderboard.length} registros globales.`
+                    : 'No hay resultados globales.';
+
+                generateResultsTable();
+
+                const feedbackContainer = document.getElementById('allFeedback');
+                if (feedbackContainer) {
+                    feedbackContainer.innerHTML = `
+                        <h3 class="feedback-title">Retroalimentación</h3>
+                        <p style="color:#555;">La retroalimentación detallada se muestra al finalizar un quiz. Aquí se muestra el ranking global guardado en Firestore.</p>
+                    `;
+                }
+            } catch (err) {
+                console.error('Error al consultar resultados globales:', err);
+                alert('No fue posible cargar los resultados globales. Revisa la configuración de Firebase y las reglas de Firestore.');
             }
         }
 
