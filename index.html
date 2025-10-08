@@ -61,10 +61,22 @@
             }
             
             .clickable {
-                padding: 2px 3px;
-                margin: 1px;
-                display: inline-block;
-            }
+            padding: 2px 3px;
+            margin: 1px;
+            display: inline-block;
+            /* Indicadores visuales en móvil */
+            border: 1px dashed #ffc107;
+            background-color: #fff9e6;
+            text-decoration-line: underline;
+            text-decoration-style: dotted;
+            text-decoration-color: #ffc107;
+            text-decoration-thickness: 2px;
+        }
+        .clickable::after {
+            content: " 👆";
+            color: #ff9800;
+            font-size: 0.9em;
+        }
             
             .navigation-buttons {
                 margin-top: 15px;
@@ -535,8 +547,8 @@
                 id: 1,
                 type: "Libro",
                 parts: [
-                    { text: "García", clickable: true, error: false, explanation: "Correcto. El apellido del autor está bien escrito." },
-                    { text: " M.", clickable: true, error: true, explanation: "Error: Falta la coma después del apellido. Debe ser: García, M." },
+                    { text: "García", clickable: true, error: true, explanation: "Error: Falta la coma después del apellido. Debe ser: García, M." },
+                    { text: " M.", clickable: true, error: false, explanation: "Incorrecto: La coma va después del apellido; esta parte no representa el error." },
                     { text: " (2023). ", clickable: false },
                     { text: "Psicología cognitiva moderna", clickable: true, error: false, italic: true, explanation: "Incorrecto: El título del libro está correctamente en cursiva y no es un error." },
                     { text: ". Editorial Universitaria.", clickable: false }
